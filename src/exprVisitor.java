@@ -19,9 +19,20 @@ public class exprVisitor extends StarBaseVisitor<Valor> {
     @Override public Valor visitAlgoritmo(StarParser.AlgoritmoContext ctx) {
         String algorithmName = ctx.algorithm().ID().getText();
         System.out.println("Algorithm: " + algorithmName);
-        if (ctx.algorithm().arglist() != null) {
+        if (ctx.algorithm().idlist() != null) {
             //System.out.println("lista no nulo");
-            this.visit(ctx.algorithm().arglist());
+            for(int i=0;i<ctx.algorithm().idlist().ID().size();i++){
+                String x = ctx.algorithm().idlist().ID(i).getText();
+                if(memory.containsKey(x)){
+
+                        memory.replace(x,null);
+                    }
+                    else {
+                        memory.put(x,null);
+
+                }
+
+            }
             //visitListdefvar(ctx.algorithm().listdefvar());
         }
         if (ctx.algorithm().statement() != null) {
@@ -185,7 +196,14 @@ public class exprVisitor extends StarBaseVisitor<Valor> {
     }
 
     @Override public Valor visitFwrite_statement(StarParser.Fwrite_statementContext ctx) {
-        String ruta= ctx.CADENA(0).getText();
+        String ruta;
+        if(ctx.CADENA().size()>1){
+            ruta= ctx.CADENA(1).getText();
+        }
+        else{
+             ruta= ctx.CADENA(0).getText();
+        }
+
         String filePath = ruta.replaceAll("\"", "");
         System.out.println(filePath);
 
@@ -199,11 +217,127 @@ public class exprVisitor extends StarBaseVisitor<Valor> {
         } catch (IOException e) {
             System.out.println("Ocurrió un error al crear el archivo: " + e.getMessage());
         }
-        if(ctx.arglist()!=null){
+        if(ctx.idlist()!=null){
+            for (int i = 0; i < ctx.idlist().ID().size(); i++) {
+                String x = ctx.idlist().ID(i).getText();
+                if(memory.containsKey(x)){
+                    //System.out.println("i= "+i);
+                    String var=x+':';
+                    var=var+memory.get(x);
+                    //System.out.println(var);
+                    try {
+                        FileWriter fileWriter = new FileWriter(filePath, true); // El segundo parámetro "true" indica que se va a agregar al archivo existente
+                        BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+                        bufferedWriter.write(var);
+                        bufferedWriter.newLine();
+
+                        bufferedWriter.close(); // Cierra el BufferedWriter
+                        //System.out.println("Texto agregado al archivo correctamente.");
+                    } catch (IOException e) {
+                        System.out.println("Error al agregar texto al archivo: " + e.getMessage());
+                    }
+                }
+            }
 
         }
+        if(ctx.matrix()!=null){
+            ArrayList<ArrayList> matriz = visit(ctx.matrix()).aMatriz();
+            if(ctx.INTEGER().size()>=1){
+                int indice1= Integer.valueOf(ctx.INTEGER(0).getText());
+                int indice2= Integer.valueOf(ctx.INTEGER(1).getText());
+                try {
+                    FileWriter fileWriter = new FileWriter(filePath, true); // El segundo parámetro "true" indica que se va a agregar al archivo existente
+                    BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+                    bufferedWriter.write(matriz.get(indice1).get(indice2).toString());
+                    bufferedWriter.newLine(); // Agrega una nueva línea después del texto
+                    bufferedWriter.close(); // Cierra el BufferedWriter
+                    System.out.println("Texto agregado al archivo correctamente.");
+                } catch (IOException e) {
+                    System.out.println("Error al agregar texto al archivo: " + e.getMessage());
+                }
+            }
+        }
+        if(ctx.arrayexpr()!=null){
+            ArrayList<Double> expr= visit(ctx.arrayexpr()).aVector();
+            System.out.println(expr);
+            try {
+                FileWriter fileWriter = new FileWriter(filePath, true); // El segundo parámetro "true" indica que se va a agregar al archivo existente
+                BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+                bufferedWriter.write(expr.toString());
+                bufferedWriter.newLine(); // Agrega una nueva línea después del texto
+                bufferedWriter.close(); // Cierra el BufferedWriter
+                System.out.println("Texto agregado al archivo correctamente.");
+            } catch (IOException e) {
+                System.out.println("Error al agregar texto al archivo: " + e.getMessage());
+            }
+        }
+        if(ctx.CADENA(1)!=null){
+            try {
+                FileWriter fileWriter = new FileWriter(filePath, true); // El segundo parámetro "true" indica que se va a agregar al archivo existente
+                BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+                String val1= ctx.CADENA(0).getText().replaceAll("\"", "");
+                bufferedWriter.write(val1);
+                bufferedWriter.newLine(); // Agrega una nueva línea después del texto
+
+                bufferedWriter.close(); // Cierra el BufferedWriter
+                System.out.println("Texto agregado al archivo correctamente.");
+            } catch (IOException e) {
+                System.out.println("Error al agregar texto al archivo: " + e.getMessage());
+            }
+        }
+        if(ctx.array()!=null){
+            ArrayList arreglo = visit(ctx.array()).aVector();
+            int indice= Integer.valueOf(ctx.INTEGER(0).getText());
+            try {
+                FileWriter fileWriter = new FileWriter(filePath, true); // El segundo parámetro "true" indica que se va a agregar al archivo existente
+                BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+                bufferedWriter.write(arreglo.get(indice).toString());
+                bufferedWriter.newLine(); // Agrega una nueva línea después del texto
+                bufferedWriter.close(); // Cierra el BufferedWriter
+                System.out.println("Texto agregado al archivo correctamente.");
+            } catch (IOException e) {
+                System.out.println("Error al agregar texto al archivo: " + e.getMessage());
+            }
+        }
         if(ctx.algexpr()!=null){
-            escribirEnArchivo(filePath,visit(ctx.algexpr()).toString());
+            try {
+                FileWriter fileWriter = new FileWriter(filePath, true); // El segundo parámetro "true" indica que se va a agregar al archivo existente
+                BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+
+                bufferedWriter.write(visit(ctx.algexpr()).toString());
+                bufferedWriter.newLine(); // Agrega una nueva línea después del texto
+
+                bufferedWriter.close(); // Cierra el BufferedWriter
+                System.out.println("Texto agregado al archivo correctamente.");
+            } catch (IOException e) {
+                System.out.println("Error al agregar texto al archivo: " + e.getMessage());
+            }
+        }
+        return null;
+    }
+    @Override public Valor visitFread_statement(StarParser.Fread_statementContext ctx) {
+        if(ctx.idlist()!=null){
+            for (int i = 0; i < ctx.idlist().ID().size(); i++) {
+                String x = ctx.idlist().ID(i).getText();
+                if(memory.containsKey(x)){
+
+                    try{
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+                        memory.replace(x, new Valor(reader.readLine()));
+                    }
+                    catch(IOException e){
+                        System.out.println("error");
+                    }
+                }else{
+                    try{
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+                        memory.put(x, new Valor(reader.readLine()));
+                    }
+                    catch(IOException e){
+                        System.out.println("error");
+                    }
+                }
+            }
         }
         return null;
     }
@@ -282,16 +416,7 @@ public class exprVisitor extends StarBaseVisitor<Valor> {
     @Override public Valor visitBexp2(StarParser.Bexp2Context ctx) {
         return visit(ctx.bterm());
     }
-    @Override public Valor visitIdvarlist(StarParser.IdvarlistContext ctx) {
-        if(ctx.assignment_statement()!=null){
-            visit(ctx.assignment_statement());
-        }
-        if(ctx.ID()!=null){
-            String id = ctx.ID().getText();
-            if ( memory.containsKey(id) ) return new Valor(memory.get(id));
-            return new Valor(id);
-        }
-        return null; }
+
     @Override public Valor visitArray(StarParser.ArrayContext ctx) {
         if(ctx.arrayexpr()!=null){
             return new Valor(visit(ctx.arrayexpr()));
@@ -401,16 +526,7 @@ public class exprVisitor extends StarBaseVisitor<Valor> {
 return new Valor(null);
     }
 
-    @Override public Valor visitArglist(StarParser.ArglistContext ctx) {
-        //System.out.println("arglist visitada");
-        
-        if(ctx.ID()!=null){
-        if(memory.containsKey(ctx.ID().toString())){
-            System.out.println("variable ya declarada anteriormente");
-        }
-        memory.put(ctx.ID().toString(), null);
-        }
-        return visitChildren(ctx); }
+
 
 
     @Override public Valor visitAssign(StarParser.AssignContext ctx) {
@@ -551,26 +667,17 @@ return new Valor(null);
 
     @Override public Valor visitRead_statement(StarParser.Read_statementContext ctx) {
 
-        if(ctx.arglist()!=null){
-            for (int i = 0; i < ctx.arglist().getChildCount(); i++) {
-                String x = ctx.arglist().getChild(i).getText();
-
-                if(x.equals(",")) continue;
+        if(ctx.idlist()!=null){
+            for (int i = 0; i < ctx.idlist().ID().size(); i++) {
+                String x = ctx.idlist().ID(i).getText();
                 if(memory.containsKey(x)){
                     try{
-                        BufferedReader reader = new BufferedReader(
-                                new InputStreamReader(System.in));
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
                         memory.replace(x, new Valor(reader.readLine()));
-
                     }
                     catch(IOException e){
-                        System.out.println("error");
-
-
-                    }
-
+                        System.out.println("error");                    }
                 }else{
-
                     try{
                         BufferedReader reader = new BufferedReader(
                                 new InputStreamReader(System.in));
@@ -578,8 +685,6 @@ return new Valor(null);
                     }
                     catch(IOException e){
                         System.out.println("error");
-
-
                     }
                 }
 
@@ -665,8 +770,6 @@ return new Valor(null);
                 int indice2= Integer.valueOf(ctx.INTEGER(1).getText());
                 System.out.println(matriz.get(indice1).get(indice2));
             }
-
-
         }
         if(ctx.algexpr()!=null){
             Double val1= Double.valueOf(visit(ctx.algexpr()).toString());
@@ -676,10 +779,9 @@ return new Valor(null);
             String val1= ctx.CADENA().getText().replaceAll("\"", "");
             System.out.println(val1);
         }
-        if(ctx.arglist()!=null){
-            for (int i = 0; i < ctx.arglist().getChildCount(); i++) {
-                String x = ctx.arglist().getChild(i).getText();
-                if(x.equals(",")) continue;
+        if(ctx.idlist()!=null){
+            for (int i = 0; i < ctx.idlist().ID().size(); i++) {
+                String x = ctx.idlist().ID(i).getText();
                 if(memory.containsKey(x)){
                     System.out.print(x + ':');
                     System.out.println(memory.get(x));}

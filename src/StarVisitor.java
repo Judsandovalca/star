@@ -114,6 +114,13 @@ public interface StarVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitRead(StarParser.ReadContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code fread}
+	 * labeled alternative in {@link StarParser#stat}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFread(StarParser.FreadContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code functions}
 	 * labeled alternative in {@link StarParser#stat}.
 	 * @param ctx the parse tree
@@ -147,18 +154,6 @@ public interface StarVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitIdlist(StarParser.IdlistContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link StarParser#arglist}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitArglist(StarParser.ArglistContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link StarParser#idvarlist}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitIdvarlist(StarParser.IdvarlistContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code tipoInt}
 	 * labeled alternative in {@link StarParser#type}.
@@ -278,7 +273,7 @@ public interface StarVisitor<T> extends ParseTreeVisitor<T> {
 	T visitBexp2(StarParser.Bexp2Context ctx);
 	/**
 	 * Visit a parse tree produced by the {@code bterm2}
-	 * labeled alternative in {@link StarParser#bterm}.
+	 * labeled alternative in .
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */

@@ -1,24 +1,25 @@
 grammar Star;
 prog:   stat+;
 
-stat:    randomFunction WS?                  #prob
-    |   algorithm                      # algoritmo
-    |  usefunction   WS?                 # usefun
+stat:    randomFunction WS?           #prob
+    |  algorithm                      # algoritmo
+    |  usefunction   WS?              # usefun
     |  arrayexpr WS?                  #arrayf
-    |  algexpr   WS?                     # printExpr
-    |  assignment_statement WS?          # assign
+    |  algexpr   WS?                  # printExpr
+    |  assignment_statement WS?       # assign
     |  bexpression                    # bexpr
     |  while_statement                # while
     |  if_statement                   # if
     |  for_statement                  # for
     |  relexpr                        # relationalexpresion
-    |  write_statement WS?               # write
-    |  fwrite_statement WS?               # fwrite
+    |  write_statement WS?            # write
+    |  fwrite_statement WS?           # fwrite
     |  read_statement                 # read
-    |  fun_statement  WS?               # functions
-    |  return_statement  WS?               # return2
-    |  trigFunction WS?                  #trig
-    |  WS                       # blank
+    |  fread_statement                 # fread
+    |  fun_statement  WS?             # functions
+    |  return_statement  WS?          # return2
+    |  trigFunction WS?               # trig
+    |  WS                             # blank
 
 
 
@@ -26,11 +27,7 @@ stat:    randomFunction WS?                  #prob
 idlist :
         ID (COMMA ID)*
  ;
- arglist : ID ',' arglist  | ID;
 
- idvarlist :  idvarlist COMMA idvarlist
- | assignment_statement
- | ID;
 
  type : INT # tipoInt
  | FLOAT    # tipoFloat
@@ -42,7 +39,7 @@ idlist :
  ;
 
  algorithm:
-   ALGORITHM ID (LEFTP arglist RIGHTP)? COLON WS?   statement END;
+   ALGORITHM ID (LEFTP idlist RIGHTP)? COLON WS?   statement END;
 
  statement : block
  | read_statement
@@ -60,8 +57,8 @@ idlist :
  | arrayexpr
  ;
  fread_statement:
-   FREAD LEFTP arglist RIGHTP
-  |FREAD LEFTP CADENA RIGHTP
+   FREAD LEFTP idlist ',' CADENA? RIGHTP
+  |FREAD LEFTP CADENA ',' CADENA? RIGHTP
   ;
 
   return_statement : RETURN usefunction
@@ -103,11 +100,11 @@ idlist :
 ;
 /* lectura y escritura */
  read_statement:
-  READ LEFTP arglist RIGHTP
+  READ LEFTP idlist RIGHTP
  |READ LEFTP CADENA RIGHTP
  ;
  write_statement:
-     WRITE LEFTP arglist RIGHTP
+     WRITE LEFTP idlist RIGHTP
   |  WRITE LEFTP algexpr RIGHTP
   |  WRITE LEFTP CADENA RIGHTP
   |  WRITE LEFTP array '[' INTEGER ']' RIGHTP
@@ -116,7 +113,7 @@ idlist :
   |  WRITE LEFTP matrix ('[' INTEGER ']')+ RIGHTP /* write matriz*/
   ;
   fwrite_statement:
-    FWRITE LEFTP arglist ','? CADENA RIGHTP
+    FWRITE LEFTP idlist ','? CADENA RIGHTP
  |  FWRITE LEFTP algexpr ','? CADENA RIGHTP
  |  FWRITE LEFTP CADENA ','? CADENA RIGHTP
  |  FWRITE LEFTP array ','? CADENA '[' INTEGER ']' RIGHTP

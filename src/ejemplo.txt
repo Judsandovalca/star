@@ -1,6 +1,5 @@
-def factorial(x):{write(x);if(x==0 or x==1){return 1;}else{d=factorial(1);return d*x;};}
-c=factorial(2) +1
-write(c)
+read(x,y,z)
+write(x,y,z)
 
 
 
