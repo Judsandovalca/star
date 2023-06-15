@@ -1,5 +1,6 @@
-read(x,y,z)
-write(x,y,z)
+def prueba(x): {if(x>0){return prueba(x-1)*2;}else{return 4;};}
+c=prueba(1)
+write(prueba(c))
 
 
 

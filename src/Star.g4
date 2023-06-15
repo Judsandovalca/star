@@ -1,10 +1,10 @@
 grammar Star;
 prog:   stat+;
 
-stat:    randomFunction WS?           #prob
+stat:    randomFunction WS?           # prob
     |  algorithm                      # algoritmo
     |  usefunction   WS?              # usefun
-    |  arrayexpr WS?                  #arrayf
+    |  arrayexpr WS?                  # arrayf
     |  algexpr   WS?                  # printExpr
     |  assignment_statement WS?       # assign
     |  bexpression                    # bexpr
@@ -56,16 +56,15 @@ idlist :
  | algexpr
  | arrayexpr
  ;
- fread_statement:
-   FREAD LEFTP idlist ',' CADENA? RIGHTP
-  |FREAD LEFTP CADENA ',' CADENA? RIGHTP
-  ;
 
-  return_statement : RETURN usefunction
+
+  return_statement : RETURN recursiveCall
+  | RETURN usefunction
   | RETURN algexpr
 
   ;
-
+recursiveCall:';'
+;
 
  /* ciclos */
  while_statement :
@@ -121,7 +120,10 @@ idlist :
  |  FWRITE LEFTP arrayexpr ','? CADENA RIGHTP
  |  FWRITE LEFTP matrix ('[' INTEGER ']')+ ','? CADENA RIGHTP /* write matriz*/
   ;
-
+fread_statement:
+   FREAD LEFTP idlist ',' CADENA? RIGHTP
+  |FREAD LEFTP CADENA ',' CADENA? RIGHTP
+  ;
 block : '{'WS? ( statement';'WS?)*'}' ;
 
 matrix: '[' (array','?)+ ']'

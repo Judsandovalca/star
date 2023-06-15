@@ -184,7 +184,7 @@ public class exprVisitor extends StarBaseVisitor<Valor> {
                 return this.visit(ctx.statement(1));
             }
         }
-     return new Valor (null);
+     return visit(ctx);
     }
     public static void escribirEnArchivo(String rutaArchivo, String text) {
         try (FileWriter escritor = new FileWriter(rutaArchivo)) {
@@ -316,44 +316,87 @@ public class exprVisitor extends StarBaseVisitor<Valor> {
         return null;
     }
     @Override public Valor visitFread_statement(StarParser.Fread_statementContext ctx) {
+        String ruta;
+        if(ctx.CADENA().size()>1){
+            ruta= ctx.CADENA(1).getText();
+        }
+        else{
+            ruta= ctx.CADENA(0).getText();
+        }
+        String filePath = ruta.replaceAll("\"", "");
         if(ctx.idlist()!=null){
             for (int i = 0; i < ctx.idlist().ID().size(); i++) {
                 String x = ctx.idlist().ID(i).getText();
                 if(memory.containsKey(x)){
+                    try {
+                        FileReader fileReader = new FileReader(filePath);
+                        BufferedReader bufferedReader = new BufferedReader(fileReader);
 
-                    try{
-                        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-                        memory.replace(x, new Valor(reader.readLine()));
-                    }
-                    catch(IOException e){
-                        System.out.println("error");
+                        String linea;
+                        while ((linea = bufferedReader.readLine()) != null) {
+                            String v=String.valueOf(linea.toCharArray()[0]);
+                            String value= String.valueOf(linea.toCharArray()[2]);
+                            if(v.equals(x)){
+                                memory.replace(x,new Valor(value));
+                            }
+                        }
+
+                        bufferedReader.close(); // Cierra el BufferedReader
+                    } catch (IOException e) {
+                        System.out.println("Error al leer el archivo: " + e.getMessage());
                     }
                 }else{
-                    try{
-                        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-                        memory.put(x, new Valor(reader.readLine()));
-                    }
-                    catch(IOException e){
-                        System.out.println("error");
+                    try {
+                        FileReader fileReader = new FileReader(filePath);
+                        BufferedReader bufferedReader = new BufferedReader(fileReader);
+
+                        String linea;
+                        while ((linea = bufferedReader.readLine()) != null) {
+                            //System.out.println("reader no vacio");
+                            String v=String.valueOf(linea.toCharArray()[0]);
+                            String value= String.valueOf(linea.toCharArray()[2]);
+                            if(x.equals(v)){
+                                memory.put(x,new Valor(value));
+                            }
+                        }
+
+                        bufferedReader.close(); // Cierra el BufferedReader
+                    } catch (IOException e) {
+                        System.out.println("Error al leer el archivo: " + e.getMessage());
                     }
                 }
+            }
+        }
+        if(ctx.CADENA(1)!=null){
+            try {
+                FileReader fileReader = new FileReader(filePath);
+                BufferedReader bufferedReader = new BufferedReader(fileReader);
+
+                String linea;
+                while ((linea = bufferedReader.readLine()) != null) {
+                    System.out.println(linea);
+                }
+
+                bufferedReader.close(); // Cierra el BufferedReader
+            } catch (IOException e) {
+                System.out.println("Error al leer el archivo: " + e.getMessage());
             }
         }
         return null;
     }
     @Override public Valor visitFor_statement(StarParser.For_statementContext ctx) {
         if(ctx.assignment_statement(0)!=null){
-          visit(ctx.assignment_statement(0));
+            visit(ctx.assignment_statement(0));
 
         }
-
         while(visit(ctx.bexpression()).aBoolean()==true){
-            if(ctx.assignment_statement(1)!=null){
-                visit(ctx.assignment_statement(1));
 
-            }
             if (ctx.statement()!=null){
                 visit(ctx.statement());
+
+            }
+            if(ctx.assignment_statement(1)!=null){
+                visit(ctx.assignment_statement(1));
 
             }
         }
@@ -646,10 +689,8 @@ return new Valor(null);
     @Override public Valor visitUsefunction(StarParser.UsefunctionContext ctx) {
         String id=ctx.ID().getText();
         FunctionValor funcion = funciones.get(id);
-        //System.out.println(id);
-       if(ctx.algexpr()!=null){
-          // System.out.println("alg not null");
-           for (int i = 0; i <  funcion.parametros.size(); i++) {
+        if(ctx.algexpr()!=null){
+            for (int i = 0; i <  funcion.parametros.size(); i++) {
               // System.out.println("parametros not null");
                memory.put(funcion.parametros.get(i) , new Valor(visit(ctx.algexpr(i))));
                //System.out.print(funcion.parametros.get(i).toString() +':' + ctx.algexpr(i).getText() + " ");
@@ -728,7 +769,7 @@ return new Valor(null);
 
     }
     @Override public Valor visitFunction(StarParser.FunctionContext ctx) {
-        System.out.println("funcion visitada");
+       // System.out.println("funcion visitada");
         if(ctx.usefunction()!=null){
             return new Valor(visit(ctx.usefunction()));
         }
@@ -800,15 +841,20 @@ return new Valor(null);
         return visitChildren(ctx);
     }
     @Override public Valor visitStatement(StarParser.StatementContext ctx) {
-
-
         if (ctx.read_statement() != null) {
             return this.visit(ctx.read_statement());
         }
-
         if (ctx.write_statement() != null) {
            // System.out.println("write visitado");
             return this.visit(ctx.write_statement());
+        }
+        if (ctx.fwrite_statement() != null) {
+            // System.out.println("write visitado");
+            return this.visit(ctx.fwrite_statement());
+        }
+        if (ctx.fread_statement() != null) {
+            // System.out.println("write visitado");
+            return this.visit(ctx.fread_statement());
         }
         if (ctx.while_statement()!=null) {
             return this.visit(ctx.while_statement());
@@ -829,12 +875,13 @@ return new Valor(null);
            return this.visit(ctx.usefunction());
         }
         if (ctx.assignment_statement() != null) {
-            return this.visit(ctx.assignment_statement());
+            return new Valor(visit(ctx.assignment_statement()));
+            //return this.visit(ctx.assignment_statement());
         }
         if (ctx.return_statement() != null) {
-            // System.out.println("ret no nulo");
-           //return new Valor(visit(ctx.return_statement()));
-            return this.visit(ctx.return_statement());
+
+           return new Valor(visit(ctx.return_statement()));
+            //return this.visit(ctx.return_statement());
         }
 
         if (ctx.algexpr() != null) {
@@ -849,12 +896,16 @@ return new Valor(null);
            return this.visit(ctx.block());
         }
 
+
         return visit(ctx); }
     @Override public Valor visitBlock(StarParser.BlockContext ctx) {
         if(ctx.statement()!=null){
+            int contador=0;
             for (int i=0; i<ctx.statement().size();i++){
+
                 if (ctx.statement(i).return_statement()!=null){
-                    return this.visit(ctx.statement(i));
+                    //System.out.println("return encontrado");
+                    return new Valor(visit(ctx.statement(i)));
                 }
                 visit(ctx.statement(i));
 
@@ -887,18 +938,23 @@ return new Valor(null);
     }
     @Override public Valor visitReturn_statement(StarParser.Return_statementContext ctx) {
 
-          System.out.println("return visitado");
+          //System.out.println("return visitado");
         if(ctx.usefunction()!=null){
             variable= visit(ctx.usefunction());
             return new Valor(visit(ctx.usefunction()));
 
 
         }
-        ret=true;
-        variable= visit(ctx.algexpr());
-        //System.out.println(variable);
-        return new Valor (visit(ctx.algexpr()));
-        //return this.visit(ctx.algexpr());
+        if(ctx.algexpr()!=null){
+
+            ret=true;
+            variable= visit(ctx.algexpr());
+            return this.visit(ctx.algexpr());
+        }
+
+       // System.out.println(variable);
+      //  return new Valor (visit(ctx.algexpr()));
+      return new Valor(0);
     }
     @Override public Valor visitMulDiv(StarParser.MulDivContext ctx) {
         Valor izq = new Valor((visit(ctx.algexpr(0)).toString()));

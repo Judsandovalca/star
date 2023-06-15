@@ -227,13 +227,6 @@ public class StarBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements S
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitFread_statement(StarParser.Fread_statementContext ctx) { return visitChildren(ctx); }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation returns the result of calling
-	 * {@link #visitChildren} on {@code ctx}.</p>
-	 */
 	@Override public T visitReturn_statement(StarParser.Return_statementContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
@@ -368,6 +361,13 @@ public class StarBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements S
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
 	@Override public T visitFwrite_statement(StarParser.Fwrite_statementContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitFread_statement(StarParser.Fread_statementContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
