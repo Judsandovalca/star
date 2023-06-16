@@ -152,7 +152,8 @@ assignment_statement
  ;
 
 arrayexpr:
- ARRAYADD LEFTP array ','? array RIGHTP
+   ARRAYADD LEFTP array ','? array RIGHTP
+ | ARRAYSIZE LEFTP array RIGHTP
  | ARRAYSUBS LEFTP array ','? array RIGHTP
  | ARRAYDOT LEFTP array ','? array RIGHTP
  | ARRAYCROSS LEFTP array ','? array RIGHTP
@@ -182,13 +183,29 @@ mathFunction
  | probFunction
  ;
  probFunction:
-  randomFunction
+   randomFunction
+ | densityFunction
+ | distributionFunction
+ | percentilFunction
+ | momentumGenerationFunction
+ ;
+ densityFunction:
+ 'fsdafsa'
+ ;
+ momentumGenerationFunction:
+ 'asf'
+ ;
+
+ distributionFunction:
+ 'fd'
+ ;
+ percentilFunction: 'f'
  ;
  randomFunction:
  RANDOM LEFTP REALNUMBER RIGHTP
  ;
-logFunction:
-LN LEFTP algexpr RIGHTP
+ logFunction:
+ LN LEFTP algexpr RIGHTP
 ;
 
 
@@ -215,6 +232,8 @@ algexpr
   | ID ('['INTEGER']')?               # id
 
   ;
+
+ARRAYSIZE:'array.size';
 FWRITE:'fwrite';
 FREAD:'fread' ;
 RANDOM: 'random';

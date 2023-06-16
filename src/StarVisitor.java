@@ -222,6 +222,12 @@ public interface StarVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitReturn_statement(StarParser.Return_statementContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link StarParser#recursiveCall}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitRecursiveCall(StarParser.RecursiveCallContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link StarParser#while_statement}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -412,6 +418,30 @@ public interface StarVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitProbFunction(StarParser.ProbFunctionContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link StarParser#densityFunction}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDensityFunction(StarParser.DensityFunctionContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link StarParser#momentumGenerationFunction}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitMomentumGenerationFunction(StarParser.MomentumGenerationFunctionContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link StarParser#distributionFunction}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDistributionFunction(StarParser.DistributionFunctionContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link StarParser#percentilFunction}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPercentilFunction(StarParser.PercentilFunctionContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link StarParser#randomFunction}.
 	 * @param ctx the parse tree

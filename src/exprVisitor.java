@@ -7,6 +7,7 @@ import java.util.Random;
 
 public class exprVisitor extends StarBaseVisitor<Valor> {
     boolean ret=false;
+    int contador =0;
     Map<String, Valor> memory = new HashMap<String, Valor>();
     private HashMap<Integer, HashMap<String, Valor>> locales = new HashMap<>();
     Map<String, ArrayList> arraymemory = new HashMap<String, ArrayList>();
@@ -462,7 +463,8 @@ public class exprVisitor extends StarBaseVisitor<Valor> {
 
     @Override public Valor visitArray(StarParser.ArrayContext ctx) {
         if(ctx.arrayexpr()!=null){
-            return new Valor(visit(ctx.arrayexpr()));
+           // System.out.println(this.visit(ctx.arrayexpr()).aVector());
+            return this.visit(ctx.arrayexpr());
         }
         if(ctx.ID()!=null){
             String id = ctx.ID().getText();
@@ -515,8 +517,11 @@ public class exprVisitor extends StarBaseVisitor<Valor> {
             }
         }
         if(ctx.usefunction()!=null){
+           // System.out.println(contador);
             Valor value = visit(ctx.usefunction());
-            /**/
+            memory.put(id,value);
+
+            /*
             if(ret){
                 ret=false;
                 if(memory.containsKey(id)){
@@ -528,6 +533,8 @@ public class exprVisitor extends StarBaseVisitor<Valor> {
                 }
                 variable=null;
             }
+
+             */
 
         }
         if(ctx.matrix()!=null){
@@ -541,18 +548,19 @@ public class exprVisitor extends StarBaseVisitor<Valor> {
 
         }
         if(ctx.array()!=null){
+            //System.out.println(visit(ctx.array()));
             if(ctx.array().arrayexpr()!=null){
-                if(matrixmemory.containsKey(id)){
-                    //System.out.println("id ya existente, remplazando");
-                    arraymemory.replace(id ,visit(ctx.array().arrayexpr()).aVector());
+                if(arraymemory.containsKey(id)){
+                    arraymemory.replace(id ,visit(ctx.array()).aVector());
                 }
                 else{
-                    arraymemory.put(id ,visit(ctx.array().arrayexpr()).aVector());
+                  //  System.out.println("entro");
+                    arraymemory.put(id ,visit(ctx.array()).aVector());
                 }
 
             }
             else{
-                if(matrixmemory.containsKey(id)){
+                if(arraymemory.containsKey(id)){
                     //System.out.println("id ya existente, remplazando");
                     arraymemory.replace(id ,visit(ctx.array()).aVector());
                 }
@@ -622,7 +630,14 @@ return new Valor(null);
     }
     @Override public Valor visitArrayexpr(StarParser.ArrayexprContext ctx) {
         ArrayList<Double> ar1 = visit(ctx.array(0)).aVector();
+        if(ctx.ARRAYSIZE()!=null){
+            ArrayList<Double> suma = new ArrayList<>();
+            double res= ar1.size();
+            suma.add(res);
+            return new Valor(suma);
+        }
         ArrayList<Double> ar2 = visit(ctx.array(1)).aVector();
+
 
         if(ctx.ARRAYADD()!=null){
             if (ar1.size() == ar2.size()) {
@@ -686,7 +701,9 @@ return new Valor(null);
             }
         }
         return null; }
+    int usarfuncion=0;
     @Override public Valor visitUsefunction(StarParser.UsefunctionContext ctx) {
+        usarfuncion++;
         String id=ctx.ID().getText();
         FunctionValor funcion = funciones.get(id);
         if(ctx.algexpr()!=null){
@@ -792,6 +809,7 @@ return new Valor(null);
         return new Valor(Math.log(valore));
     }
     @Override public Valor visitWrite_statement(StarParser.Write_statementContext ctx) {
+        //System.out.println("write visitado");
         if(ctx.array()!=null){
             ArrayList arreglo = visit(ctx.array()).aVector();
             int indice= Integer.valueOf(ctx.INTEGER(0).getText());
@@ -821,12 +839,17 @@ return new Valor(null);
             System.out.println(val1);
         }
         if(ctx.idlist()!=null){
+            System.out.println("entro idlist");
             for (int i = 0; i < ctx.idlist().ID().size(); i++) {
                 String x = ctx.idlist().ID(i).getText();
                 if(memory.containsKey(x)){
                     System.out.print(x + ':');
                     System.out.println(memory.get(x));}
+                if(arraymemory.containsKey(x)){
+                    System.out.print(x + ':');
+                    System.out.println(arraymemory.get(x));}
                 }
+
             }
            return new Valor(null);
     }
@@ -899,22 +922,18 @@ return new Valor(null);
 
         return visit(ctx); }
     @Override public Valor visitBlock(StarParser.BlockContext ctx) {
+        Valor resultado=null;
         if(ctx.statement()!=null){
-            int contador=0;
             for (int i=0; i<ctx.statement().size();i++){
 
-                if (ctx.statement(i).return_statement()!=null){
-                    //System.out.println("return encontrado");
-                    return new Valor(visit(ctx.statement(i)));
-                }
-                visit(ctx.statement(i));
+             visit(ctx.statement(i));
+
+
 
             }
         }
-        if (ret){
-            return new Valor(variable);
-        }
-        return new Valor(null);
+        if(ret){return variable;}
+        return null;
          }
     @Override
     public Valor visitNegation(StarParser.NegationContext ctx) {
@@ -937,17 +956,21 @@ return new Valor(null);
        return new Valor(id);
     }
     @Override public Valor visitReturn_statement(StarParser.Return_statementContext ctx) {
+        ret=true;
 
           //System.out.println("return visitado");
         if(ctx.usefunction()!=null){
-            variable= visit(ctx.usefunction());
+           // variable= visit(ctx.usefunction());
             return new Valor(visit(ctx.usefunction()));
 
 
         }
         if(ctx.algexpr()!=null){
-
-            ret=true;
+            if(variable!=null){
+                contador++;
+               // return new Valor(variable.aDouble()*contador);
+            }
+            //ret=true;
             variable= visit(ctx.algexpr());
             return this.visit(ctx.algexpr());
         }
