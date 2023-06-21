@@ -44,6 +44,34 @@ public interface StarVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitArrayf(StarParser.ArrayfContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code arrayl}
+	 * labeled alternative in {@link StarParser#stat}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitArrayl(StarParser.ArraylContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code twm}
+	 * labeled alternative in {@link StarParser#stat}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitTwm(StarParser.TwmContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code twmop}
+	 * labeled alternative in {@link StarParser#stat}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitTwmop(StarParser.TwmopContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code arraylop}
+	 * labeled alternative in {@link StarParser#stat}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitArraylop(StarParser.ArraylopContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code printExpr}
 	 * labeled alternative in {@link StarParser#stat}.
 	 * @param ctx the parse tree
@@ -395,6 +423,18 @@ public interface StarVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitArrayexpr(StarParser.ArrayexprContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link StarParser#arraylist}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitArraylist(StarParser.ArraylistContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link StarParser#arraylistop}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitArraylistop(StarParser.ArraylistopContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link StarParser#trigFunction}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -418,6 +458,18 @@ public interface StarVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitProbFunction(StarParser.ProbFunctionContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link StarParser#twoWaysModel}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitTwoWaysModel(StarParser.TwoWaysModelContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link StarParser#twoWaysModelop}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitTwoWaysModelop(StarParser.TwoWaysModelopContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link StarParser#densityFunction}.
 	 * @param ctx the parse tree

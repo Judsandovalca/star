@@ -1,16 +1,20 @@
 grammar Star;
 prog:   stat+;
 
-stat:    randomFunction WS?           # prob
+stat:   probFunction WS?           # prob
     |  algorithm                      # algoritmo
     |  usefunction   WS?              # usefun
     |  arrayexpr WS?                  # arrayf
+    |  arraylist WS?                  # arrayl
+    |  twoWaysModel WS?                  # twm
+    |  twoWaysModelop WS?                  # twmop
+    |  arraylistop WS?                  # arraylop
     |  algexpr   WS?                  # printExpr
     |  assignment_statement WS?       # assign
     |  bexpression                    # bexpr
-    |  while_statement                # while
-    |  if_statement                   # if
-    |  for_statement                  # for
+    |  while_statement WS?               # while
+    |  if_statement  WS?                 # if
+    |  for_statement WS?                 # for
     |  relexpr                        # relationalexpresion
     |  write_statement WS?            # write
     |  fwrite_statement WS?           # fwrite
@@ -35,7 +39,7 @@ idlist :
  | BOOL     # tipoBool
  | MATRIX   # tipoMatrix
  | VECTOR   # tipoVector
- | TMW      # tipoTMW
+ | TWM      # tipoTMW
  ;
 
  algorithm:
@@ -88,7 +92,7 @@ recursiveCall:';'
  bterm : bterm AND bfactor  #bterm1
  | bfactor               #bterm2
  ;
- bfactor : NOT bfactor   # bNeg
+ bfactor: NOT bfactor   # bNeg
  | LEFTP bexpression RIGHTP   # bParenthesis
  | ID                    # bID
  | TRUE                  # bTrue
@@ -159,6 +163,18 @@ arrayexpr:
  | ARRAYCROSS LEFTP array ','? array RIGHTP
 
 ;
+arraylist:
+ARRAYLIST ID
+| ID
+;
+arraylistop:
+ ID LADD LEFTP array RIGHTP
+| ID LDELETE LEFTP array RIGHTP
+| ID LGET LEFTP INTEGER RIGHTP
+| ID LCONTAINS LEFTP array RIGHTP
+| ID LSIZE LEFTP RIGHTP
+;
+
  trigFunction:
  SIN LEFTP algexpr RIGHTP
  | COS LEFTP algexpr RIGHTP
@@ -189,17 +205,50 @@ mathFunction
  | percentilFunction
  | momentumGenerationFunction
  ;
+ twoWaysModel:
+  TWM ID LEFTP REALNUMBER ','? array ','? array ','? arraylist RIGHTP  // efecto del modelo, tratamiento, bloques, matriz de n
+  ;
+ twoWaysModelop:
+   ID N LEFTP DOTDOT RIGHTP
+  |ID N  LEFTP INTEGER IDOT RIGHTP
+  |ID N  LEFTP DOTJ INTEGER RIGHTP
+  |ID X LEFTP DOTDOT RIGHTP
+  |ID X  LEFTP INTEGER IDOT RIGHTP
+  |ID X  LEFTP DOTJ INTEGER RIGHTP
+ ;
+
  densityFunction:
- 'fsdafsa'
+      NORMALDISTRIBUTION LEFTP REALNUMBER ','? REALNUMBER RIGHTP  DENSITY LEFTP REALNUMBER RIGHTP //confidence degrees
+    | TDISTRIBUTION LEFTP INTEGER RIGHTP DENSITY LEFTP REALNUMBER RIGHTP  //confidence degrees
+    | POISSONDISTRIBUTION LEFTP REALNUMBER RIGHTP  DENSITY LEFTP REALNUMBER RIGHTP  // lambda, probability of
+    | CHISQUAREDDISTRIBUTION LEFTP INTEGER RIGHTP  DENSITY LEFTP REALNUMBER RIGHTP //confidence degrees
+    | GEOMETRICDISTRIBUTION LEFTP REALNUMBER  RIGHTP DENSITY LEFTP REALNUMBER RIGHTP //confidence degrees
+    | GAMMADISTRIBUTION LEFTP REALNUMBER ','? REALNUMBER RIGHTP  DENSITY  LEFTP REALNUMBER RIGHTP
  ;
  momentumGenerationFunction:
- 'asf'
+     NORMALDISTRIBUTION LEFTP REALNUMBER ','? REALNUMBER RIGHTP  MGF LEFTP REALNUMBER RIGHTP //confidence degrees
+     | TDISTRIBUTION LEFTP INTEGER RIGHTP MGF LEFTP REALNUMBER RIGHTP  //confidence degrees
+     | POISSONDISTRIBUTION LEFTP REALNUMBER RIGHTP  MGF LEFTP REALNUMBER RIGHTP  // lambda, probability of
+     | CHISQUAREDDISTRIBUTION LEFTP INTEGER RIGHTP  MGF LEFTP REALNUMBER RIGHTP //confidence degrees
+     | GEOMETRICDISTRIBUTION LEFTP REALNUMBER  RIGHTP MGF LEFTP REALNUMBER RIGHTP //confidence degrees
+     | GAMMADISTRIBUTION LEFTP REALNUMBER ','? REALNUMBER RIGHTP  MGF  LEFTP REALNUMBER RIGHTP
  ;
 
  distributionFunction:
- 'fd'
+   NORMALDISTRIBUTION LEFTP REALNUMBER ','? REALNUMBER RIGHTP DISTRIBUTION LEFTP REALNUMBER RIGHTP //mean and standard deviation
+ | TDISTRIBUTION LEFTP INTEGER RIGHTP DISTRIBUTION LEFTP REALNUMBER RIGHTP                          // degrees of freedom
+ | POISSONDISTRIBUTION LEFTP REALNUMBER RIGHTP DISTRIBUTION LEFTP INTEGER RIGHTP   // lambda, probability of
+ | CHISQUAREDDISTRIBUTION LEFTP INTEGER RIGHTP  DISTRIBUTION LEFTP REALNUMBER RIGHTP               // degrees of freedom
+ | GEOMETRICDISTRIBUTION LEFTP REALNUMBER  RIGHTP DISTRIBUTION LEFTP INTEGER RIGHTP  // success probability
+ | GAMMADISTRIBUTION LEFTP REALNUMBER ','? REALNUMBER RIGHTP  DISTRIBUTION LEFTP REALNUMBER RIGHTP  // shape, scale
  ;
- percentilFunction: 'f'
+ percentilFunction:
+    NORMALDISTRIBUTION LEFTP REALNUMBER ','? REALNUMBER RIGHTP  PERCENTIL LEFTP REALNUMBER RIGHTP //confidence degrees
+   | TDISTRIBUTION LEFTP INTEGER RIGHTP PERCENTIL LEFTP REALNUMBER RIGHTP  //confidence degrees
+   | POISSONDISTRIBUTION LEFTP REALNUMBER  RIGHTP  PERCENTIL LEFTP REALNUMBER RIGHTP  // lambda, probability of
+   | CHISQUAREDDISTRIBUTION LEFTP INTEGER RIGHTP  PERCENTIL LEFTP REALNUMBER RIGHTP //confidence degrees
+   | GEOMETRICDISTRIBUTION LEFTP REALNUMBER  RIGHTP  PERCENTIL LEFTP REALNUMBER RIGHTP //confidence degrees
+   | GAMMADISTRIBUTION LEFTP REALNUMBER ','? REALNUMBER RIGHTP  PERCENTIL LEFTP REALNUMBER RIGHTP //confidence degrees
  ;
  randomFunction:
  RANDOM LEFTP REALNUMBER RIGHTP
@@ -232,7 +281,27 @@ algexpr
   | ID ('['INTEGER']')?               # id
 
   ;
-
+X: '.x';
+N:'.n';
+DOTJ: '.,';
+IDOT:',.' ;
+DOTDOT: '..';
+LSIZE: '.size';
+ARRAYLIST: 'arraylist';
+LADD: '.add' ;
+LGET: '.get' ;
+LDELETE: '.delete';
+LCONTAINS:'.contains' ;
+MGF:'.MGF';
+DISTRIBUTION:'.distribution';
+DENSITY:'.density';
+PERCENTIL:'.percentil';
+GAMMADISTRIBUTION:'gammaDistribution';
+GEOMETRICDISTRIBUTION: 'geometricDistribution';
+CHISQUAREDDISTRIBUTION:'chiSquaredDistribution';
+TDISTRIBUTION:'TDistribution';
+POISSONDISTRIBUTION:'poissonDistribution';
+NORMALDISTRIBUTION:'normalDistribution';
 ARRAYSIZE:'array.size';
 FWRITE:'fwrite';
 FREAD:'fread' ;
@@ -261,7 +330,7 @@ FLOAT: 'float';
 STRING: 'string';
 MATRIX: 'matrix';
 BOOL: 'bool';
-TMW: 'TMW';
+TWM: 'TWM';
 GT: '>';
 LESS: '<';
 EQ: '==';

@@ -56,6 +56,9 @@ public class Valor implements Comparable {
     public ArrayList<ArrayList> aMatriz() {
         return (ArrayList<ArrayList>) valor;
     }
+    public ArrayList<double[]> aModelo() {
+        return (ArrayList<double[]>) valor;
+    }
 
     //Determina si el valor es un Double
     public boolean esDouble() {

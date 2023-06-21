@@ -3,6 +3,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import org.apache.commons.math3.distribution.NormalDistribution;
+import org.apache.commons.math3.distribution.PoissonDistribution;
+import org.apache.commons.math3.distribution.GeometricDistribution;
+import org.apache.commons.math3.distribution.GammaDistribution;
+import org.apache.commons.math3.distribution.ChiSquaredDistribution;
+import org.apache.commons.math3.distribution.TDistribution;
+
 
 
 public class exprVisitor extends StarBaseVisitor<Valor> {
@@ -11,6 +18,10 @@ public class exprVisitor extends StarBaseVisitor<Valor> {
     Map<String, Valor> memory = new HashMap<String, Valor>();
     private HashMap<Integer, HashMap<String, Valor>> locales = new HashMap<>();
     Map<String, ArrayList> arraymemory = new HashMap<String, ArrayList>();
+    Map<String, ArrayList<double[]>> arraylistmemory = new HashMap<String, ArrayList<double[]>>();
+    Map<String, TWModel> twmemory = new HashMap<String, TWModel>();
+
+
     Map<String, ArrayList<ArrayList>> matrixmemory = new HashMap<String, ArrayList<ArrayList>>();
     private Valor variable=null;
 
@@ -43,6 +54,130 @@ public class exprVisitor extends StarBaseVisitor<Valor> {
 
         return null;
     }
+
+    @Override public Valor visitArraylist(StarParser.ArraylistContext ctx) {
+        String id= ctx.ID().getText();
+        if(ctx.ARRAYLIST()==null){
+           return new Valor(arraylistmemory.get(id));
+        }
+
+        ArrayList<double[]> id2 = new ArrayList<>();
+        if(arraylistmemory.containsKey(id)){
+            arraylistmemory.replace(id,id2);
+        }else{
+            arraylistmemory.put(id,id2);
+           // System.out.println("arraylist creado");
+        }
+
+        return null;
+    }
+    @Override public Valor visitArraylistop(StarParser.ArraylistopContext ctx) {
+        String id=ctx.ID().getText();
+        //System.out.println(id);
+
+        if(arraylistmemory.containsKey(id)){
+            if(ctx.LSIZE()!=null){
+                //System.out.println(arraylistmemory.get(id).size());
+                return new Valor(arraylistmemory.get(id).size());
+            }
+            ArrayList<Double> arreglo = (visit(ctx.array())).aVector();
+            double[] doubleArray = new double[arreglo.size()];
+            for (int i = 0; i < arreglo.size(); i++) {
+                doubleArray[i] = arreglo.get(i);
+            }
+           // System.out.println(arreglo);
+           // System.out.println("entro");
+            if(ctx.LADD()!=null){
+
+                arraylistmemory.get(id).add(doubleArray);
+            }
+            if(ctx.LDELETE()!=null){
+                arraylistmemory.get(id).remove(doubleArray);
+            }
+            if(ctx.LGET()!=null){
+                int intege=Integer.valueOf(ctx.INTEGER().getText());
+               return new Valor (arraylistmemory.get(id).get(intege));
+            }
+
+            if(ctx.LCONTAINS()!=null){
+               if(arraylistmemory.get(id).contains(arreglo)){
+                   return new Valor(true);
+               }else{return new Valor(false);
+               }
+            }
+        }
+
+
+        return null; }
+    @Override public Valor visitTwoWaysModel(StarParser.TwoWaysModelContext ctx) {
+        String nombre= ctx.ID().getText() ;
+        double efectoModelo =Double.valueOf(ctx.REALNUMBER().getText());
+        ArrayList<Double> bloques = new ArrayList<>();
+        bloques=visit(ctx.array(0)).aVector();
+        ArrayList<Double> tratamientos = visit(ctx.array(1)).aVector();
+
+        ArrayList<double[]> matrizDatos = new ArrayList<>();
+        for(int i=0;i<visit(ctx.arraylist()).aVector().size();i++){
+
+        matrizDatos.add((double[]) visit(ctx.arraylist()).aVector().get(i));
+        }
+       /* for (int i=0;i<matrizDatos.size();i++){
+            for (int j=0;j<matrizDatos.get(i).length;j++){
+                double[] ar= matrizDatos.get(i);
+                System.out.print(ar[j]);
+                System.out.print(" ");
+            }
+            System.out.println();
+
+        }*/
+        TWModel nuevomodelo= new TWModel(efectoModelo,tratamientos,bloques,matrizDatos);
+        nuevomodelo.crearMatrizConDatos();
+        nuevomodelo.imprimirMatrizConDatos();
+        nuevomodelo.crearMatrizR();
+
+
+        if(twmemory.containsKey(nombre)){
+            twmemory.replace(nombre,nuevomodelo);
+        }
+        else{
+            twmemory.put(nombre,nuevomodelo);
+        }
+
+        return null;
+    }
+    @Override public Valor visitTwoWaysModelop(StarParser.TwoWaysModelopContext ctx) {
+        String id= ctx.ID().getText();
+        TWModel mod=twmemory.get(id);
+        if(ctx.DOTDOT()!=null && ctx.N()!=null){
+            System.out.println( mod.calcularNumeroTotalDatos());
+            return new Valor( mod.calcularNumeroTotalDatos());
+        }
+        if(ctx.IDOT()!=null && ctx.N()!=null){
+            int bloque= Integer.valueOf(ctx.INTEGER().getText());
+            System.out.println(mod.calcularNumeroTotalDatosBloque(bloque));
+            return new Valor(mod.calcularNumeroTotalDatosBloque(bloque));
+        }
+        if(ctx.DOTJ()!=null && ctx.N()!=null){
+            int tratamiento= Integer.valueOf(ctx.INTEGER().getText());
+            System.out.println(mod.calcularNumeroTotalDatosTratamiento(tratamiento));
+            return new Valor(mod.calcularNumeroTotalDatosTratamiento(tratamiento));
+        }
+        if(ctx.DOTDOT()!=null && ctx.X()!=null){
+            System.out.println( mod.obtenerDatosMatriz());
+            return new Valor( mod.obtenerDatosMatriz());
+        }
+        if(ctx.IDOT()!=null && ctx.X()!=null){
+            int bloque= Integer.valueOf(ctx.INTEGER().getText());
+            System.out.println(mod.obtenerDatosBloque(bloque));
+            return new Valor(mod.obtenerDatosBloque(bloque));
+        }
+        if(ctx.DOTJ()!=null && ctx.X()!=null){
+            int tratamiento= Integer.valueOf(ctx.INTEGER().getText());
+            System.out.println(mod.obtenerDatosTratamiento(tratamiento));
+            return new Valor(mod.obtenerDatosTratamiento(tratamiento));
+        }
+        return null; }
+
     @Override public Valor visitMd(StarParser.MdContext ctx) {
         Valor izq = new Valor((visit(ctx.algexpr(0)).toString()));
         Valor der = new Valor((visit(ctx.algexpr(1)).toString()));
@@ -468,6 +603,7 @@ public class exprVisitor extends StarBaseVisitor<Valor> {
         }
         if(ctx.ID()!=null){
             String id = ctx.ID().getText();
+            //System.out.println(arraymemory.get(id));
            return new Valor(arraymemory.get(id));
         }
         else{
@@ -578,7 +714,131 @@ return new Valor(null);
     }
 
 
+    @Override public Valor visitProbFunction(StarParser.ProbFunctionContext ctx) {
+        if (ctx.distributionFunction()!=null){
+            return this.visit(ctx.distributionFunction());
+        }
+        if (ctx.randomFunction()!=null){
+            return this.visit(ctx.distributionFunction());
+        }
+        return visitChildren(ctx);
+    }
+    @Override public Valor visitMomentumGenerationFunction(StarParser.MomentumGenerationFunctionContext ctx) {
+        if(ctx.GAMMADISTRIBUTION()!=null){
+            double shape = Double.valueOf(ctx.REALNUMBER(0).getText()); // Parámetro de forma para la distribución gamma
+            double scale = Double.valueOf(ctx.REALNUMBER(1).getText()); // Parámetro de escala para la distribución gamma
+            GammaDistribution gammaDistribution = new GammaDistribution(shape, scale);
+            double p= Double.valueOf(ctx.REALNUMBER(2).getText());
+            double cumulative= gammaDistribution.cumulativeProbability(p);
+            return new Valor(cumulative);
 
+        }
+        if(ctx.GEOMETRICDISTRIBUTION()!=null){
+            double successProbability = Double.valueOf(ctx.REALNUMBER(0).getText()); // Probabilidad de éxito para la distribución geométrica
+            GeometricDistribution geometricDistribution = new GeometricDistribution(successProbability);
+            int p= Integer.valueOf(ctx.INTEGER().getText());
+            double cumulative= geometricDistribution.cumulativeProbability(p);
+            return new Valor(cumulative);
+
+        }
+        if(ctx.TDISTRIBUTION()!=null){
+            int degreesOfFreedom = Integer.valueOf(ctx.INTEGER().getText()); // Grados de libertad para la distribución t de Student
+
+            TDistribution tDistribution = new TDistribution(degreesOfFreedom);
+            double p= Double.valueOf(ctx.REALNUMBER(0).getText());
+            double cumulative= tDistribution.cumulativeProbability(p);
+
+            return new Valor(cumulative); // Segunda muestra de t de Student
+
+        }
+        if (ctx.CHISQUAREDDISTRIBUTION()!=null){
+            int degreesOfFreedom = Integer.valueOf(ctx.INTEGER().getText()); // Grados de libertad para la distribución chi-cuadrado
+            ChiSquaredDistribution chiSquaredDistribution = new ChiSquaredDistribution(degreesOfFreedom);
+            double p= Double.valueOf(ctx.REALNUMBER(0).getText());
+            double cumulative= chiSquaredDistribution.cumulativeProbability(p);
+            return new Valor(cumulative);
+        }
+        if(ctx.POISSONDISTRIBUTION()!=null){
+            double lambda=Double.valueOf(ctx.REALNUMBER(0).getText());
+            PoissonDistribution pd = new PoissonDistribution(lambda);
+            int p= Integer.valueOf(ctx.INTEGER().getText());
+            double cumulative= pd.cumulativeProbability(p);
+            return new Valor(cumulative);
+        }
+
+
+
+        if(ctx.NORMALDISTRIBUTION()!=null){
+            double mean=Double.valueOf(ctx.REALNUMBER(0).getText());
+            double standardDeviation= Double.valueOf(ctx.REALNUMBER(1).getText());
+            NormalDistribution normalDistribution = new NormalDistribution(mean, standardDeviation);
+            double order=Double.valueOf(ctx.REALNUMBER(2).getText());
+            double moment = normalDistribution.getNumericalMean(); // Momento de orden 1 (media)
+            for (int i = 1; i <= order; i++) {
+
+                moment = moment * normalDistribution.getNumericalVariance() + Math.pow(normalDistribution.getNumericalMean(), i);
+                System.out.println(moment);
+            }
+
+            return new Valor(moment);
+        }
+        return null; }
+
+    @Override public Valor visitDistributionFunction(StarParser.DistributionFunctionContext ctx) {
+        if(ctx.GAMMADISTRIBUTION()!=null){
+            double shape = Double.valueOf(ctx.REALNUMBER(0).getText()); // Parámetro de forma para la distribución gamma
+            double scale = Double.valueOf(ctx.REALNUMBER(1).getText()); // Parámetro de escala para la distribución gamma
+            GammaDistribution gammaDistribution = new GammaDistribution(shape, scale);
+            double p= Double.valueOf(ctx.REALNUMBER(2).getText());
+            double cumulative= gammaDistribution.cumulativeProbability(p);
+            return new Valor(cumulative);
+
+        }
+        if(ctx.GEOMETRICDISTRIBUTION()!=null){
+            double successProbability = Double.valueOf(ctx.REALNUMBER(0).getText()); // Probabilidad de éxito para la distribución geométrica
+            GeometricDistribution geometricDistribution = new GeometricDistribution(successProbability);
+            int p= Integer.valueOf(ctx.INTEGER().getText());
+            double cumulative= geometricDistribution.cumulativeProbability(p);
+            return new Valor(cumulative);
+
+        }
+        if(ctx.TDISTRIBUTION()!=null){
+           int degreesOfFreedom = Integer.valueOf(ctx.INTEGER().getText()); // Grados de libertad para la distribución t de Student
+
+           TDistribution tDistribution = new TDistribution(degreesOfFreedom);
+            double p= Double.valueOf(ctx.REALNUMBER(0).getText());
+           double cumulative= tDistribution.cumulativeProbability(p);
+
+         return new Valor(cumulative); // Segunda muestra de t de Student
+
+       }
+       if (ctx.CHISQUAREDDISTRIBUTION()!=null){
+           int degreesOfFreedom = Integer.valueOf(ctx.INTEGER().getText()); // Grados de libertad para la distribución chi-cuadrado
+           ChiSquaredDistribution chiSquaredDistribution = new ChiSquaredDistribution(degreesOfFreedom);
+           double p= Double.valueOf(ctx.REALNUMBER(0).getText());
+           double cumulative= chiSquaredDistribution.cumulativeProbability(p);
+           return new Valor(cumulative);
+       }
+        if(ctx.POISSONDISTRIBUTION()!=null){
+            double lambda=Double.valueOf(ctx.REALNUMBER(0).getText());
+            PoissonDistribution pd = new PoissonDistribution(lambda);
+            int p= Integer.valueOf(ctx.INTEGER().getText());
+            double cumulative= pd.cumulativeProbability(p);
+            return new Valor(cumulative);
+        }
+
+
+
+        if(ctx.NORMALDISTRIBUTION()!=null){
+            double mean=Double.valueOf(ctx.REALNUMBER(0).getText());
+            double standardDeviation= Double.valueOf(ctx.REALNUMBER(1).getText());
+            NormalDistribution normalDistribution = new NormalDistribution(mean, standardDeviation);
+            double p=Double.valueOf(ctx.REALNUMBER(2).getText());
+            double cumulative=normalDistribution.cumulativeProbability(p);
+
+            return new Valor(cumulative);
+        }
+        return null; }
 
     @Override public Valor visitAssign(StarParser.AssignContext ctx) {
         return visit(ctx.assignment_statement()); }
@@ -586,6 +846,107 @@ return new Valor(null);
     public Valor visitParenthesis(StarParser.ParenthesisContext ctx) {
         return visit(ctx.algexpr());
 
+    }
+    @Override public Valor visitDensityFunction(StarParser.DensityFunctionContext ctx) {
+        if(ctx.NORMALDISTRIBUTION()!=null){
+            double mean=Double.valueOf(ctx.REALNUMBER(0).getText());
+            double standardDeviation= Double.valueOf(ctx.REALNUMBER(1).getText());
+            NormalDistribution normalDistribution = new NormalDistribution(mean, standardDeviation);
+
+            double density= Double.valueOf(ctx.REALNUMBER(2).getText());
+           // System.out.println(density);
+            return new Valor( normalDistribution.density(density));
+        }
+        if(ctx.TDISTRIBUTION()!=null){
+            int degreesOfFreedom = Integer.valueOf(ctx.INTEGER().getText()); // Grados de libertad para la distribución t de Student
+            TDistribution tDistribution = new TDistribution(degreesOfFreedom);
+            double density= Double.valueOf(ctx.REALNUMBER(0).getText());
+            return new Valor (tDistribution.density(density));
+        }
+        if(ctx.CHISQUAREDDISTRIBUTION()!=null){
+            int degreesOfFreedom = Integer.valueOf(ctx.INTEGER().getText()); // Grados de libertad para la distribución chi-cuadrado
+            ChiSquaredDistribution chiSquaredDistribution = new ChiSquaredDistribution(degreesOfFreedom);
+            double density = Double.valueOf(ctx.REALNUMBER(0).getText());
+            return new Valor(chiSquaredDistribution.density(density));
+        }
+        if(ctx.POISSONDISTRIBUTION()!=null){
+            double lambda=Double.valueOf(ctx.REALNUMBER(0).getText());
+            int density= Integer.valueOf(ctx.REALNUMBER(1).getText());
+            PoissonDistribution poissonDistribution = new PoissonDistribution(lambda);
+
+            double maxK = poissonDistribution.probability(density);
+
+            return new Valor(maxK);
+        }
+        if(ctx.GEOMETRICDISTRIBUTION()!=null){
+            double successProbability = Double.valueOf(ctx.REALNUMBER(0).getText()); // Probabilidad exito
+            GeometricDistribution geometricDistribution = new GeometricDistribution(successProbability);
+            int density= Integer.valueOf(ctx.REALNUMBER(1).getText());
+            double maxK = geometricDistribution.probability(density);
+
+            return new Valor(maxK);
+
+        }
+        if(ctx.GAMMADISTRIBUTION()!=null){
+            double shape = Double.valueOf(ctx.REALNUMBER(0).getText()); // Parámetro de forma para la distribución gamma
+            double scale = Double.valueOf(ctx.REALNUMBER(1).getText()); // Parámetro de escala para la distribución gamma
+            GammaDistribution gammaDistribution = new GammaDistribution(shape, scale);
+            double density= Double.valueOf(ctx.REALNUMBER(2).getText());
+            double density2 = gammaDistribution.density(density);
+            return new Valor(density2);
+
+        }
+
+        return null;
+    }
+    @Override public Valor visitPercentilFunction(StarParser.PercentilFunctionContext ctx) {
+        if(ctx.NORMALDISTRIBUTION()!=null){
+            double mean=Double.valueOf(ctx.REALNUMBER(0).getText());
+            double standardDeviation= Double.valueOf(ctx.REALNUMBER(1).getText());
+            NormalDistribution normalDistribution = new NormalDistribution(mean, standardDeviation);
+            double confidenceLevel= Double.valueOf(ctx.REALNUMBER(2).getText());
+            return new Valor(normalDistribution.inverseCumulativeProbability(confidenceLevel));
+        }
+        if(ctx.TDISTRIBUTION()!=null){
+            int degreesOfFreedom = Integer.valueOf(ctx.INTEGER().getText()); // Grados de libertad para la distribución t de Student
+            TDistribution tDistribution = new TDistribution(degreesOfFreedom);
+            double confidenceLevel= Double.valueOf(ctx.REALNUMBER(0).getText());
+            return new Valor (tDistribution.inverseCumulativeProbability(1.0 - (1.0 - confidenceLevel) / 2.0));
+        }
+        if(ctx.CHISQUAREDDISTRIBUTION()!=null){
+            int degreesOfFreedom = Integer.valueOf(ctx.INTEGER().getText()); // Grados de libertad para la distribución chi-cuadrado
+            ChiSquaredDistribution chiSquaredDistribution = new ChiSquaredDistribution(degreesOfFreedom);
+            double confidenceLevel= Double.valueOf(ctx.REALNUMBER(0).getText());
+            return new Valor(chiSquaredDistribution.inverseCumulativeProbability(1.0- confidenceLevel));
+        }
+        if(ctx.POISSONDISTRIBUTION()!=null){
+            double lambda=Double.valueOf(ctx.REALNUMBER(0).getText());
+            double confidenceLevel= Double.valueOf(ctx.REALNUMBER(1).getText());
+            PoissonDistribution poissonDistribution = new PoissonDistribution(lambda);
+
+            int maxK = poissonDistribution.inverseCumulativeProbability(1 - confidenceLevel);
+            double percentile = poissonDistribution.probability(maxK);
+            return new Valor(percentile);
+        }
+        if(ctx.GEOMETRICDISTRIBUTION()!=null){
+            double successProbability = Double.valueOf(ctx.REALNUMBER(0).getText()); // Probabilidad exito
+            GeometricDistribution geometricDistribution = new GeometricDistribution(successProbability);
+            double confidenceLevel= Double.valueOf(ctx.REALNUMBER(1).getText());
+            int maxK = geometricDistribution.inverseCumulativeProbability(1 - confidenceLevel);
+            double percentile = geometricDistribution.probability(maxK);
+            return new Valor(percentile);
+
+        }
+        if(ctx.GAMMADISTRIBUTION()!=null){
+            double shape = Double.valueOf(ctx.REALNUMBER(0).getText()); // Parámetro de forma para la distribución gamma
+            double scale = Double.valueOf(ctx.REALNUMBER(1).getText()); // Parámetro de escala para la distribución gamma
+            GammaDistribution gammaDistribution = new GammaDistribution(shape, scale);
+            double confidenceLevel= Double.valueOf(ctx.REALNUMBER(2).getText());
+            double percentile = gammaDistribution.inverseCumulativeProbability(confidenceLevel);
+            return new Valor(percentile);
+
+        }
+        return null;
     }
     @Override public Valor visitTrigFunction(StarParser.TrigFunctionContext ctx) {
         Double arg= Double.valueOf(visit(ctx.algexpr()).toString());
@@ -793,6 +1154,7 @@ return new Valor(null);
         if(ctx.mathFunction()!=null){
             return new Valor(visit(ctx.mathFunction()));
         }
+
         return null;
     }
     @Override public Valor visitMathFunction(StarParser.MathFunctionContext ctx) {
@@ -801,6 +1163,9 @@ return new Valor(null);
         }
         if(ctx.trigFunction()!=null){
             return new Valor(visit(ctx.trigFunction()));
+        }
+        if(ctx.probFunction()!=null){
+            return new Valor(visit(ctx.probFunction()));
         }
         return null;
     }
@@ -839,7 +1204,7 @@ return new Valor(null);
             System.out.println(val1);
         }
         if(ctx.idlist()!=null){
-            System.out.println("entro idlist");
+          //  System.out.println("entro idlist");
             for (int i = 0; i < ctx.idlist().ID().size(); i++) {
                 String x = ctx.idlist().ID(i).getText();
                 if(memory.containsKey(x)){
