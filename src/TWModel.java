@@ -1,3 +1,4 @@
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -8,6 +9,9 @@ public class TWModel {
     private ArrayList<Double> efectosBloques;
     private ArrayList<double[]> matrizDatos;
     private Object[][] matrizConDatos; //modelo dos vias
+    private Object[][] matrizR; //modelo dos vias
+    private int [] vectorC;
+    private ArrayList<ArrayList> vectoresC= new ArrayList<>();
 
     public TWModel(double alpha, ArrayList<Double> efectosTratamientos,
                    ArrayList<Double> efectosBloques,
@@ -17,7 +21,8 @@ public class TWModel {
         this.efectosTratamientos = efectosTratamientos;
         this.efectosBloques = efectosBloques;
         this.matrizDatos = matrizDatos;
-        this.matrizConDatos = crearMatrizConDatos();
+        //this.matrizConDatos = crearMatrizConDatos();
+       // this.matrizR=crearMatrizR();
     }
     public Object[][] getMatrizConDatos() {
         return matrizConDatos;
@@ -66,6 +71,21 @@ public class TWModel {
                     for (double valor : arreglo) {
                         System.out.print(valor + " ");
                     }
+                }
+                System.out.print(" ]");
+            }
+            System.out.println();
+        }
+    }
+    public void imprimirMatrizR() {
+        for (Object[] fila : matrizR) {
+            for (Object objeto : fila) {
+                System.out.print("[ ");
+                if (objeto instanceof double[]) {
+                    double[] arreglo = (double[]) objeto;
+                    for (double valor : arreglo) {
+                        System.out.print(valor + " ");
+                    }
                 } else {
                     System.out.print(objeto + " ");
                 }
@@ -78,6 +98,7 @@ public class TWModel {
         if (tratamiento < 0 || tratamiento >= efectosTratamientos.size()) {
             return 0;
         }
+
 
         int contador = 0;
         for (Object[] fila : matrizConDatos) {
@@ -96,9 +117,24 @@ public class TWModel {
         if (tratamiento < 0 || tratamiento >= efectosTratamientos.size()) {
             return datos;
         }
-
-
         for (Object[] fila : matrizConDatos) {
+            Object objeto = fila[tratamiento];
+            if (objeto instanceof double[]) {
+                double[] arreglo = (double[]) objeto;
+                for (double valor : arreglo) {
+                    datos.add(valor);
+                }
+            }
+
+        }
+        return datos;
+    }
+    public ArrayList<Double> obtenerDatosTratamientoMatrizR(int tratamiento) {
+        ArrayList<Double> datos = new ArrayList<>();
+        if (tratamiento < 0 || tratamiento >= efectosTratamientos.size()) {
+            return datos;
+        }
+        for (Object[] fila : matrizR) {
             Object objeto = fila[tratamiento];
             if (objeto instanceof double[]) {
                 double[] arreglo = (double[]) objeto;
@@ -125,6 +161,23 @@ public class TWModel {
 
         }
     }
+        return datos;
+    }
+    public ArrayList<Double> obtenerDatosBloqueMatrizR(int bloque) {
+        ArrayList<Double> datos = new ArrayList<>();
+        if (bloque < 0 || bloque >= efectosBloques.size()) {
+            return datos;
+        }
+        Object[] fila = matrizR[bloque];
+        for (Object objeto : fila) {
+            if (objeto instanceof double[]) {
+                double[] arreglo = (double[]) objeto;
+                for (double valor : arreglo) {
+                    datos.add(valor);
+                }
+
+            }
+        }
         return datos;
     }
 
@@ -191,24 +244,10 @@ public class TWModel {
         return -1;  // Devolver -1 si el número no se encuentra en el arreglo
     }
 
-    public int transformacionvectorCamatrizR(){
-        for(int i=0; i< efectosBloques.size();i++){
-            ArrayList<Double> datos = obtenerDatosBloque(i);
-            ArrayList<Double> datosOrdenados=datos;
-            Collections.sort(datosOrdenados);
-            int pos=encontrarPosicion(datosOrdenados,datos.get(i));
-            //  rachasHastaDatoVectorC()
-        }
-        return 0;
-    }
-
-    public Object[][] crearMatrizR() {
-        int l=0;
-
+    public ArrayList<ArrayList> transformacionvectorCamatrizR(){
         int numFilas = efectosBloques.size();
         int numColumnas = efectosTratamientos.size();
-        Object[][] matriz = new Object[numFilas][numColumnas];
-
+        ArrayList<ArrayList> total = new ArrayList<>();
         for (int i=0; i<efectosBloques.size();i++){
             int k=0;
             ArrayList<Double> datos =obtenerDatosBloque(i);
@@ -232,38 +271,257 @@ public class TWModel {
                 System.out.print(location[2]);
                 System.out.println(); */
                 k++;
+
             }
+
+            vectoresC.add(c);
+
             System.out.print("]");
             System.out.println();
             ArrayList<Integer> arreglo= new ArrayList<Integer>();
+
             for(double dato: datos){
                 int pos=encontrarPosicion(datosOrdenados,dato);
                 arreglo.add(rachasHastaDatoVectorC(c,pos));
-               // System.out.println("dato: " +dato+" localizacion en x:"+pos);
+                // System.out.println("dato: " +dato+" localizacion en x:"+pos)
 
             }
 
-            System.out.println(arreglo);
-            ArrayList<double[]> matrizD= getMatrizDatos();
+            total.add(arreglo);
 
-            for(double[] ar: matrizD){
-                for (int p=0; p<ar.length;p++){
 
+
+        }
+
+        return total;
+    }
+    public ArrayList encontrarCi(int i){
+        return vectoresC.get(i);
+    }
+    public double datoMatrizR(int i, int j, int k){
+        int n=0;
+        double[] arreglo = (double[]) matrizR[i][j];
+        for(double numero:arreglo){
+            if(n==k){
+                return numero;
+            }
+           n++;
+        }
+
+        return 0;
+            }
+    public double datoMatrizN(int i, int j, int k){
+        int n=0;
+        double[] arreglo = (double[]) matrizConDatos[i][j];
+        for(double numero:arreglo){
+            if(n==k){
+                return numero;
+            }
+            n++;
+        }
+
+        return 0;
+    }
+    public double sumaijPunto(int i, int j){
+     double total=0;
+        double[] arreglo = (double[]) matrizR[i][j];
+        //System.out.println(arreglo.length);
+       for(double numero:arreglo){
+           total=total+numero;
+       }
+        return total;
+    }
+    public double matrizNsumaijPunto(int i, int j){
+        double total=0;
+        double[] arreglo = (double[]) matrizConDatos[i][j];
+        for(double numero:arreglo){
+            total=total+numero;
+        }
+        return total;
+    }
+    public double sumaiPuntoPunto(int i){
+        double total=0;
+        Object[] fila= matrizR[i];
+        for (Object objeto : fila) {
+            if (objeto instanceof double[]) {
+                double[] arreglo = (double[]) objeto;
+                for (double valor : arreglo) {
+                    total=total+valor;
                 }
-                l++;
             }
-            for (int j = 0; j < numColumnas; j++) {
+        }
+        return total;
+    }
+    public double matrizNsumaiPuntoPunto(int i){
+        double total=0;
+        Object[] fila= matrizConDatos[i];
+        for (Object objeto : fila) {
+            if (objeto instanceof double[]) {
+                double[] arreglo = (double[]) objeto;
+                for (double valor : arreglo) {
+                    total=total+valor;
+                }
+            }
+        }
+        return total;
+    }
+    public double promedioiPuntoPunto(int i){
+        Object [] fila= matrizR[i];
+       return sumaiPuntoPunto(i)/fila.length;
 
-                matriz[i][j] = arreglo;
+    }
+    public double matrizNpromedioiPuntoPunto(int i){
+        Object [] fila= matrizConDatos[i];
+        return matrizNsumaiPuntoPunto(i)/fila.length;
+
+    }
+    public double promedioPuntojPunto(int j){
+
+        return puntojPunto(j)/matrizR.length;
+
+    }
+    public double matrizNpromedioPuntojPunto(int j){
+
+        return matrizNpuntojPunto(j)/matrizConDatos.length;
+
+    }
+    public double puntojPunto(int j){
+        double total=0;
+        for (Object[] fila : matrizR) {
+             Object objeto=fila[j];
+             if (objeto instanceof double[]) {
+                 double[] arreglo = (double[]) objeto;
+                    for (int i=0;i<arreglo.length;i++) {
+                        total=total+arreglo[i];
+                    }
+                }
+        }
+        return total;
+    }
+    public double matrizNpuntojPunto(int j){
+        double total=0;
+        for (Object[] fila : matrizConDatos) {
+            Object objeto=fila[j];
+            if (objeto instanceof double[]) {
+                double[] arreglo = (double[]) objeto;
+                for (int i=0;i<arreglo.length;i++) {
+                    total=total+arreglo[i];
+                }
+            }
+        }
+        return total;
+    }
+    public double sumaRachasModeloTotal(){
+       double total=0;
+        for (Object[] fila : matrizR) {
+            for (Object objeto : fila) {
+                if (objeto instanceof double[]) {
+                    double[] arreglo = (double[]) objeto;
+                    for (double valor : arreglo) {
+                        total=total+valor;
+                    }
+                }
+            }
+        }
+        return total;
+    }
+    public double matrizNsumaRachasModeloTotal(){
+        double total=0;
+        for (Object[] fila : matrizConDatos) {
+            for (Object objeto : fila) {
+                if (objeto instanceof double[]) {
+                    double[] arreglo = (double[]) objeto;
+                    for (double valor : arreglo) {
+                        total=total+valor;
+                    }
+                }
+            }
+        }
+        return total;
+    }
+    public double promedioTotalRachasModelo(){
+        return sumaRachasModeloTotal()/calcularNumeroTotalDatos();
+    }
+    public double matrizNpromedioTotalRachasModelo(){
+        return matrizNsumaRachasModeloTotal()/calcularNumeroTotalDatos();
+    }
+    public double promedioSumaijPunto(int i, int j){
+        double total=0;
+        double[] arreglo = (double[]) matrizR[i][j];
+        //System.out.println(arreglo.length);
+        for(double numero:arreglo){
+            total=total+numero;
+        }
+        return total/arreglo.length;
+    }
+    public double promedioNSumaijPunto(int i, int j){
+        double total=0;
+        double[] arreglo = (double[]) matrizConDatos[i][j];
+        //System.out.println(arreglo.length);
+        for(double numero:arreglo){
+            total=total+numero;
+        }
+        return total/arreglo.length;
+    }
+    public Object[][] crearMatrizR() {
+        int numFilas = efectosBloques.size();
+        int numColumnas = efectosTratamientos.size();
+        Object[][] matriz = new Object[numFilas][numColumnas];
+        ArrayList<ArrayList> arreglos= transformacionvectorCamatrizR();
+
+        ArrayList<Double> totalpasarR= new ArrayList<>();
+        for (ArrayList<Integer> innerList : arreglos) {
+            for (Integer number : innerList) {
+                totalpasarR.add(Double.valueOf(number));
             }
         }
 
+        //System.out.println(totalpasarR);
+        int count=0;
+        ArrayList<double[]> matrizDato = new ArrayList<>();
+        for( double[] arr:matrizDatos){
+            matrizDato.add(arr.clone());
+        }
+
+       // System.out.println(matrizDato.size());
+         for(int i=0; i<matrizDato.size(); i++){
+             for (int j=0; j<matrizDato.get(i).length; j++){
+                 matrizDato.get(i)[j]=totalpasarR.get(count);
+                 count++;
+
+             }
+         }
+
+         int g=0;
+        for (int i = 0; i < numFilas; i++) {
+            for (int j = 0; j < numColumnas; j++) {
+                matriz[i][j] = matrizDato.get(g);
+                g++;
+            }
+        }
+        matrizR=matriz;
         return matriz;
     }
     public ArrayList<Double> obtenerDatosMatriz() {
         ArrayList<Double> datos = new ArrayList<>();
 
         for (Object[] fila : matrizConDatos) {
+            for (Object objeto : fila) {
+                if (objeto instanceof double[]) {
+                    double[] arreglo = (double[]) objeto;
+                    for (double valor : arreglo) {
+                        datos.add(valor);
+                    }
+                }
+            }
+        }
+
+        return datos;
+    }
+    public ArrayList<Double> obtenerDatosMatrizR() {
+        ArrayList<Double> datos = new ArrayList<>();
+
+        for (Object[] fila : matrizR) {
             for (Object objeto : fila) {
                 if (objeto instanceof double[]) {
                     double[] arreglo = (double[]) objeto;
@@ -318,7 +576,7 @@ public class TWModel {
                 g++;
             }
         }
-
+        matrizConDatos=matriz;
         return matriz;
     }
 

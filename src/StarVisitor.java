@@ -44,6 +44,13 @@ public interface StarVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitArrayf(StarParser.ArrayfContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code stringopp}
+	 * labeled alternative in {@link StarParser#stat}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitStringopp(StarParser.StringoppContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code arrayl}
 	 * labeled alternative in {@link StarParser#stat}.
 	 * @param ctx the parse tree
@@ -169,6 +176,20 @@ public interface StarVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitTrig(StarParser.TrigContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code family}
+	 * labeled alternative in {@link StarParser#stat}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFamily(StarParser.FamilyContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code lambdafam}
+	 * labeled alternative in {@link StarParser#stat}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitLambdafam(StarParser.LambdafamContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code blank}
 	 * labeled alternative in {@link StarParser#stat}.
@@ -447,6 +468,12 @@ public interface StarVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitFunction(StarParser.FunctionContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link StarParser#lambdaFamily}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitLambdaFamily(StarParser.LambdaFamilyContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link StarParser#mathFunction}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -471,6 +498,24 @@ public interface StarVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitTwoWaysModelop(StarParser.TwoWaysModelopContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link StarParser#xOperations}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitXOperations(StarParser.XOperationsContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link StarParser#nOperations}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitNOperations(StarParser.NOperationsContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link StarParser#rOperations}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitROperations(StarParser.ROperationsContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link StarParser#densityFunction}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -482,6 +527,12 @@ public interface StarVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitMomentumGenerationFunction(StarParser.MomentumGenerationFunctionContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link StarParser#familyDistribution}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFamilyDistribution(StarParser.FamilyDistributionContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link StarParser#distributionFunction}.
 	 * @param ctx the parse tree
@@ -512,6 +563,13 @@ public interface StarVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitUsefunction(StarParser.UsefunctionContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code rOP}
+	 * labeled alternative in {@link StarParser#algexpr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitROP(StarParser.ROPContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code trigf}
 	 * labeled alternative in {@link StarParser#algexpr}.
@@ -582,4 +640,17 @@ public interface StarVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitId(StarParser.IdContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code nOP}
+	 * labeled alternative in {@link StarParser#algexpr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitNOP(StarParser.NOPContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link StarParser#stringOp}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitStringOp(StarParser.StringOpContext ctx);
 }

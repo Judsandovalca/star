@@ -5,24 +5,27 @@ stat:   probFunction WS?           # prob
     |  algorithm                      # algoritmo
     |  usefunction   WS?              # usefun
     |  arrayexpr WS?                  # arrayf
+    |  stringOp WS?                  # stringopp
     |  arraylist WS?                  # arrayl
     |  twoWaysModel WS?                  # twm
     |  twoWaysModelop WS?                  # twmop
     |  arraylistop WS?                  # arraylop
     |  algexpr   WS?                  # printExpr
     |  assignment_statement WS?       # assign
-    |  bexpression                    # bexpr
+    |  bexpression  WS?                  # bexpr
     |  while_statement WS?               # while
     |  if_statement  WS?                 # if
     |  for_statement WS?                 # for
-    |  relexpr                        # relationalexpresion
+    |  relexpr     WS?                   # relationalexpresion
     |  write_statement WS?            # write
     |  fwrite_statement WS?           # fwrite
-    |  read_statement                 # read
-    |  fread_statement                 # fread
+    |  read_statement    WS?             # read
+    |  fread_statement  WS?               # fread
     |  fun_statement  WS?             # functions
     |  return_statement  WS?          # return2
     |  trigFunction WS?               # trig
+    |  familyDistribution WS?         # family
+    |  lambdaFamily WS?               # lambdafam
     |  WS                             # blank
 
 
@@ -43,7 +46,7 @@ idlist :
  ;
 
  algorithm:
-   ALGORITHM ID (LEFTP idlist RIGHTP)? COLON WS?   statement END;
+   ALGORITHM ID (LEFTP idlist RIGHTP)? COLON WS?   statement DOT;
 
  statement : block
  | read_statement
@@ -60,6 +63,7 @@ idlist :
  | algexpr
  | arrayexpr
  ;
+
 
 
   return_statement : RETURN recursiveCall
@@ -138,6 +142,7 @@ array
 : '['  (algexpr','?)+  ']'
  | ID
  | arrayexpr
+ | xOperations
 ;
 
 assignment_statement
@@ -192,7 +197,10 @@ mathFunction
 |usefunction
 
  ;
-
+ lambdaFamily:
+   LAMBDA PERCENTIL LEFTP REALNUMBER ';' REALNUMBER ','? REALNUMBER ','? REALNUMBER ','? REALNUMBER RIGHTP // u,lambda1 2 3 4
+|  LAMBDA DENSITY LEFTP REALNUMBER ';' REALNUMBER ','? REALNUMBER ','? REALNUMBER ','? REALNUMBER RIGHTP // x ,lambda1 2 3 4
+ ;
  mathFunction:
  trigFunction
  | logFunction
@@ -209,46 +217,73 @@ mathFunction
   TWM ID LEFTP REALNUMBER ','? array ','? array ','? arraylist RIGHTP  // efecto del modelo, tratamiento, bloques, matriz de n
   ;
  twoWaysModelop:
-   ID N LEFTP DOTDOT RIGHTP
-  |ID N  LEFTP INTEGER IDOT RIGHTP
-  |ID N  LEFTP DOTJ INTEGER RIGHTP
-  |ID X LEFTP DOTDOT RIGHTP
-  |ID X  LEFTP INTEGER IDOT RIGHTP
-  |ID X  LEFTP DOTJ INTEGER RIGHTP
+   nOperations
+  |xOperations
+  |rOperations
+  |ID ALPHA LEFTP  RIGHTP
+
+ ;
+  xOperations:
+     ID X LEFTP DOTDOT RIGHTP
+    |ID X  LEFTP INTEGER IDOT RIGHTP
+    |ID X  LEFTP DOTJ INTEGER RIGHTP
+    |ID R LEFTP DOTDOT RIGHTP
+    |ID R  LEFTP INTEGER IDOT RIGHTP
+    |ID R  LEFTP DOTJ INTEGER RIGHTP
+    |ID C LEFTP INTEGER RIGHTP
+
+  ;
+ nOperations:
+    ID N LEFTP DOTDOT RIGHTP
+   |ID N  LEFTP INTEGER IDOT RIGHTP
+   |ID N  LEFTP DOTJ INTEGER RIGHTP
+   |ID N LEFTP INTEGER ','? INTEGER ','? INTEGER RIGHTP //ijk
+   |ID X LEFTP INTEGER ','? INTEGER IDOT RIGHTP            //suma rachas  celda i j
+   |ID XAVERAGE LEFTP INTEGER ','? INTEGER IDOT RIGHTP     // promedio suma rachas i j
+   |ID X LEFTP INTEGER DOTDOTSPACE RIGHTP         //suma rachas bloque i
+   |ID X LEFTP DOT INTEGER DOT RIGHTP       //suma rachas tratamiento j
+   |ID XAVERAGE LEFTP INTEGER DOTDOTSPACE RIGHTP  //promedio rachas bloque i
+   |ID XAVERAGE LEFTP DOT INTEGER DOT RIGHTP       //promedio rachas tratamiento j
+   |ID X LEFTP DOTDOTDOT RIGHTP       //suma rachas todo el modelo
+   |ID XAVERAGE LEFTP DOTDOTDOT RIGHTP       // promedio rachas modelo
+ ;
+ rOperations:
+    ID R LEFTP INTEGER ','? INTEGER ','? INTEGER RIGHTP //ijk
+   |ID R LEFTP INTEGER ','? INTEGER IDOT RIGHTP            //suma rachas  celda i j
+   |ID RAVERAGE LEFTP INTEGER ','? INTEGER IDOT RIGHTP     // promedio suma rachas i j
+   |ID R LEFTP INTEGER DOTDOTSPACE RIGHTP         //suma rachas bloque i
+   |ID R LEFTP DOT INTEGER DOT RIGHTP       //suma rachas tratamiento j
+   |ID RAVERAGE LEFTP INTEGER DOTDOTSPACE RIGHTP  //promedio rachas bloque i
+   |ID RAVERAGE LEFTP DOT INTEGER DOT RIGHTP       //promedio rachas tratamiento j
+   |ID R LEFTP DOTDOTDOT RIGHTP       //suma rachas todo el modelo
+   |ID RAVERAGE LEFTP DOTDOTDOT RIGHTP       // promedio rachas modelo
  ;
 
  densityFunction:
-      NORMALDISTRIBUTION LEFTP REALNUMBER ','? REALNUMBER RIGHTP  DENSITY LEFTP REALNUMBER RIGHTP //confidence degrees
-    | TDISTRIBUTION LEFTP INTEGER RIGHTP DENSITY LEFTP REALNUMBER RIGHTP  //confidence degrees
-    | POISSONDISTRIBUTION LEFTP REALNUMBER RIGHTP  DENSITY LEFTP REALNUMBER RIGHTP  // lambda, probability of
-    | CHISQUAREDDISTRIBUTION LEFTP INTEGER RIGHTP  DENSITY LEFTP REALNUMBER RIGHTP //confidence degrees
-    | GEOMETRICDISTRIBUTION LEFTP REALNUMBER  RIGHTP DENSITY LEFTP REALNUMBER RIGHTP //confidence degrees
-    | GAMMADISTRIBUTION LEFTP REALNUMBER ','? REALNUMBER RIGHTP  DENSITY  LEFTP REALNUMBER RIGHTP
+      ID DENSITY LEFTP REALNUMBER RIGHTP
+
  ;
  momentumGenerationFunction:
-     NORMALDISTRIBUTION LEFTP REALNUMBER ','? REALNUMBER RIGHTP  MGF LEFTP REALNUMBER RIGHTP //confidence degrees
-     | TDISTRIBUTION LEFTP INTEGER RIGHTP MGF LEFTP REALNUMBER RIGHTP  //confidence degrees
-     | POISSONDISTRIBUTION LEFTP REALNUMBER RIGHTP  MGF LEFTP REALNUMBER RIGHTP  // lambda, probability of
-     | CHISQUAREDDISTRIBUTION LEFTP INTEGER RIGHTP  MGF LEFTP REALNUMBER RIGHTP //confidence degrees
-     | GEOMETRICDISTRIBUTION LEFTP REALNUMBER  RIGHTP MGF LEFTP REALNUMBER RIGHTP //confidence degrees
-     | GAMMADISTRIBUTION LEFTP REALNUMBER ','? REALNUMBER RIGHTP  MGF  LEFTP REALNUMBER RIGHTP
+      ID MGF LEFTP REALNUMBER RIGHTP
+     |ID MGF  LEFTP REALNUMBER REALNUMBER RIGHTP
  ;
 
+ familyDistribution:
+   NORMALDISTRIBUTION  ID LEFTP REALNUMBER ','? REALNUMBER RIGHTP //mean and standard deviation
+  | TDISTRIBUTION ID LEFTP INTEGER RIGHTP                          // degrees of freedom
+  | POISSONDISTRIBUTION ID LEFTP REALNUMBER RIGHTP   // lambda, probability of
+  | CHISQUAREDDISTRIBUTION ID LEFTP INTEGER RIGHTP      // degrees of freedom
+  | GEOMETRICDISTRIBUTION ID LEFTP REALNUMBER  RIGHTP   // success probability
+  | GAMMADISTRIBUTION ID LEFTP REALNUMBER ','? REALNUMBER RIGHTP // shape, scale
+
+ ;
  distributionFunction:
-   NORMALDISTRIBUTION LEFTP REALNUMBER ','? REALNUMBER RIGHTP DISTRIBUTION LEFTP REALNUMBER RIGHTP //mean and standard deviation
- | TDISTRIBUTION LEFTP INTEGER RIGHTP DISTRIBUTION LEFTP REALNUMBER RIGHTP                          // degrees of freedom
- | POISSONDISTRIBUTION LEFTP REALNUMBER RIGHTP DISTRIBUTION LEFTP INTEGER RIGHTP   // lambda, probability of
- | CHISQUAREDDISTRIBUTION LEFTP INTEGER RIGHTP  DISTRIBUTION LEFTP REALNUMBER RIGHTP               // degrees of freedom
- | GEOMETRICDISTRIBUTION LEFTP REALNUMBER  RIGHTP DISTRIBUTION LEFTP INTEGER RIGHTP  // success probability
- | GAMMADISTRIBUTION LEFTP REALNUMBER ','? REALNUMBER RIGHTP  DISTRIBUTION LEFTP REALNUMBER RIGHTP  // shape, scale
+    ID DISTRIBUTION LEFTP INTEGER RIGHTP  //GEOMETRIC DIST success probability
+ | ID DISTRIBUTION LEFTP REALNUMBER RIGHTP  // GAMMADIST shape, scale
  ;
  percentilFunction:
-    NORMALDISTRIBUTION LEFTP REALNUMBER ','? REALNUMBER RIGHTP  PERCENTIL LEFTP REALNUMBER RIGHTP //confidence degrees
-   | TDISTRIBUTION LEFTP INTEGER RIGHTP PERCENTIL LEFTP REALNUMBER RIGHTP  //confidence degrees
-   | POISSONDISTRIBUTION LEFTP REALNUMBER  RIGHTP  PERCENTIL LEFTP REALNUMBER RIGHTP  // lambda, probability of
-   | CHISQUAREDDISTRIBUTION LEFTP INTEGER RIGHTP  PERCENTIL LEFTP REALNUMBER RIGHTP //confidence degrees
-   | GEOMETRICDISTRIBUTION LEFTP REALNUMBER  RIGHTP  PERCENTIL LEFTP REALNUMBER RIGHTP //confidence degrees
-   | GAMMADISTRIBUTION LEFTP REALNUMBER ','? REALNUMBER RIGHTP  PERCENTIL LEFTP REALNUMBER RIGHTP //confidence degrees
+     ID PERCENTIL LEFTP REALNUMBER RIGHTP
+
  ;
  randomFunction:
  RANDOM LEFTP REALNUMBER RIGHTP
@@ -276,16 +311,39 @@ algexpr
   | SUBS algexpr                      # Negation
   | REALNUMBER                        # Number
   | INTEGER                           # ENT
+  | rOperations                       # rOP
+  | nOperations                       # nOP
   | function                          # trigf
   | LEFTP algexpr RIGHTP              # Parenthesis
   | ID ('['INTEGER']')?               # id
-
   ;
+ stringOp:
+ STRING TOARRAY LEFTP ID RIGHTP
+|STRING LENGTH LEFTP ID RIGHTP
+|STRING CONCAT LEFTP ID ID RIGHTP
+|ID SUBSTRING LEFTP INTEGER ','? INTEGER RIGHTP
+|ID REPLACE LEFTP CADENA ','? CADENA RIGHTP
+  ;
+LAMBDA: 'lambda';
+REPLACE: '.replace';
+SUBSTRING: '.substring';
+CONCAT: '.concat';
+LENGTH:'.length';
+TOARRAY: '.toArray';
+C:'.c';
+XAVERAGE:'.x.average';
+DOTDOTDOT:'. . .';
+DOT:'.';
+ALPHA:'.alpha';
+R:'.r';
+RAVERAGE:'.r.average';
+IJK:'.ijk';
 X: '.x';
 N:'.n';
+DOTDOTSPACE:'. .';
 DOTJ: '.,';
 IDOT:',.' ;
-DOTDOT: '..';
+DOTDOT:'..';
 LSIZE: '.size';
 ARRAYLIST: 'arraylist';
 LADD: '.add' ;
@@ -356,7 +414,6 @@ POWER: '^';
 LEFTP: '(';
 RIGHTP: ')';
 COMMA: ',';
-END: '.';
 COLON: ':';
 CADENA : '"' (~["\r\n] | '""')* '"';
 ID  :   [a-zA-Z]+ ;      // match identifiers
